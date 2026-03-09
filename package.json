@@ -1,0 +1,42 @@
+{
+  "name": "ai-gym",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.31.0",
+  "engines": {
+    "node": ">=20 <21",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "dev": "node ./scripts/sync-env.mjs && pnpm run db:generate && pnpm --filter @ai-gym/shared build && pnpm --filter @ai-gym/db build && pnpm --parallel --filter @ai-gym/api --filter @ai-gym/web dev",
+    "build": "node ./scripts/sync-env.mjs && pnpm run db:generate && pnpm -r --if-present build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "pnpm exec eslint . --ext .ts,.tsx --max-warnings=0",
+    "format": "pnpm exec prettier --write .",
+    "db:generate": "node ./scripts/sync-env.mjs && pnpm --filter @ai-gym/db prisma:generate",
+    "db:migrate": "node ./scripts/sync-env.mjs && pnpm --filter @ai-gym/db prisma:migrate",
+    "db:seed": "node ./scripts/sync-env.mjs && pnpm --filter @ai-gym/db prisma:seed",
+    "db:setup": "pnpm run db:generate && pnpm run db:migrate && pnpm run db:seed",
+    "test": "node ./scripts/sync-env.mjs && pnpm run db:generate && pnpm --filter @ai-gym/shared build && pnpm --filter @ai-gym/db build && pnpm --filter @ai-gym/tests-e2e test"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.19",
+    "@typescript-eslint/eslint-plugin": "^8.24.1",
+    "@typescript-eslint/parser": "^8.24.1",
+    "eslint": "^9.20.1",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.5.0",
+    "typescript": "^5.8.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "esbuild",
+      "prisma"
+    ]
+  }
+}
