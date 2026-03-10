@@ -338,6 +338,19 @@ input {
   gap: 8px;
 }
 
+.booking-manage-card,
+.auth-card {
+  display: grid;
+  gap: 12px;
+}
+
+.booking-manage-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
 .booking-card p {
   margin: 0;
 }

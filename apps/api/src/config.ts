@@ -8,4 +8,8 @@ export const config = {
     .filter(Boolean),
   defaultBusinessSlug:
     process.env.DEFAULT_BUSINESS_SLUG ?? DEFAULT_BUSINESS_SLUG,
+  adminUsername: process.env.ADMIN_USERNAME ?? 'admin',
+  adminPassword: process.env.ADMIN_PASSWORD ?? 'change-me',
+  adminJwtSecret:
+    process.env.ADMIN_JWT_SECRET ?? 'change-this-to-a-long-random-string',
 };

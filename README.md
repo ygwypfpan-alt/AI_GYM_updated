@@ -72,6 +72,34 @@ AI_GYM
 - RBAC
 - 複雜排程引擎
 
+## 4.1 Next-Step Scope
+
+This repo has a locked follow-up scope for `codex/feat/next-step`.
+
+Goals for the next iteration:
+
+- Add minimal admin login using env credentials and JWT
+- Protect `/api/admin/*`
+- Add booking lookup by `phone + email`
+- Let users reschedule and cancel from the lookup flow
+- Keep the scope at "demo to trial" and avoid production-only work
+
+Current implementation status on this branch:
+
+- `POST /api/admin/login` and `GET /api/admin/me` are implemented
+- `/api/admin/dashboard` now requires `Authorization: Bearer <token>`
+- The home page includes a "My bookings" lookup form using `phone + email`
+- Lookup results can reschedule and cancel existing bookings
+
+Explicitly out of scope for this iteration:
+
+- Full auth / RBAC / refresh token
+- External LLM / LINE / Email / SMS
+- Docker / CI / deployment
+- Large chat or booking architecture rewrites
+
+See `NEXT_STEP_API_CONTRACT.md` and `NEXT_STEP_TODO.md` before starting implementation.
+
 ## 5. Windows 本機啟動
 
 建議專案放在：
@@ -120,6 +148,9 @@ WEB_PORT=3000
 CORS_ORIGIN=http://localhost:3000
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
 DEFAULT_BUSINESS_SLUG=ai-gym-demo
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=change-me
+ADMIN_JWT_SECRET=change-this-to-a-long-random-string
 ```
 
 ### Step 4. 安裝依賴、migrate、seed
@@ -290,6 +321,35 @@ Content-Type: application/json
 
 ```http
 GET /api/admin/dashboard?businessSlug=ai-gym-demo
+```
+
+Authorization: `Bearer <token>` is required on this branch.
+
+## 7.1 Next-Step API Contract
+
+The next iteration adds these endpoints:
+
+```http
+POST /api/admin/login
+GET /api/admin/me
+POST /api/bookings/lookup
+```
+
+The detailed request / response contract is locked in `NEXT_STEP_API_CONTRACT.md`.
+
+### Booking Lookup
+
+```http
+POST /api/bookings/lookup
+Content-Type: application/json
+```
+
+```json
+{
+  "businessSlug": "ai-gym-demo",
+  "phone": "0911111111",
+  "email": "ming@example.com"
+}
 ```
 
 ## 8. Seed 資料說明

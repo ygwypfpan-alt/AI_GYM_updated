@@ -17,7 +17,7 @@
     "db:migrate": "node ./scripts/sync-env.mjs && pnpm --filter @ai-gym/db prisma:migrate",
     "db:seed": "node ./scripts/sync-env.mjs && pnpm --filter @ai-gym/db prisma:seed",
     "db:setup": "pnpm run db:generate && pnpm run db:migrate && pnpm run db:seed",
-    "test": "node ./scripts/sync-env.mjs && pnpm run db:generate && pnpm --filter @ai-gym/shared build && pnpm --filter @ai-gym/db build && pnpm --filter @ai-gym/tests-e2e test"
+    "test": "node ./scripts/sync-env.mjs && pnpm --filter @ai-gym/shared build && pnpm --filter @ai-gym/db build && pnpm --filter @ai-gym/tests-e2e test"
   },
   "devDependencies": {
     "@types/node": "^20.17.19",

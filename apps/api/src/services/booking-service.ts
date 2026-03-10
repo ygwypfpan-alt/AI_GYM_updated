@@ -10,6 +10,7 @@ import {
   isValidDate,
 } from '../lib/datetime.js';
 import { AppError } from '../lib/http.js';
+import { normalizeEmail, normalizePhone } from '../lib/contact.js';
 import { getBusinessBySlug } from './business-service.js';
 import { findOrCreateCustomer, type CustomerInput } from './customer-service.js';
 import { mapBookingDto } from './serializers.js';
@@ -328,4 +329,63 @@ export async function cancelBooking(input: {
   });
 
   return mapBookingDto(updated);
+}
+
+export async function lookupBookings(input: {
+  businessSlug?: string;
+  phone?: string;
+  email?: string;
+}): Promise<BookingDto[]> {
+  const business = await getBusinessBySlug(input.businessSlug);
+  const phone = normalizePhone(input.phone);
+  const email = normalizeEmail(input.email);
+
+  if (!phone || !email) {
+    throw new AppError('phone and email are required.', 400);
+  }
+
+  const customers = await prisma.customer.findMany({
+    where: {
+      businessId: business.id,
+      phone,
+      email,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!customers.length) {
+    return [];
+  }
+
+  const bookings = await prisma.booking.findMany({
+    where: {
+      businessId: business.id,
+      customerId: {
+        in: customers.map((customer) => customer.id),
+      },
+    },
+    include: {
+      customer: true,
+      service: true,
+      staff: true,
+    },
+    orderBy: [{ startAt: 'asc' }, { createdAt: 'desc' }],
+    take: 20,
+  });
+
+  const now = new Date();
+  const sorted = bookings.sort((left, right) => {
+    const leftUpcoming = left.startAt >= now ? 0 : 1;
+    const rightUpcoming = right.startAt >= now ? 0 : 1;
+
+    if (leftUpcoming !== rightUpcoming) {
+      return leftUpcoming - rightUpcoming;
+    }
+
+    return left.startAt.getTime() - right.startAt.getTime();
+  });
+
+  return sorted.map(mapBookingDto);
 }

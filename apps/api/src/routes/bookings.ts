@@ -4,10 +4,26 @@ import { asyncHandler, AppError, ok } from '../lib/http.js';
 import {
   cancelBooking,
   createBooking,
+  lookupBookings,
   rescheduleBooking,
 } from '../services/booking-service.js';
 
 const router: Router = Router();
+
+router.post(
+  '/lookup',
+  asyncHandler(async (req, res) => {
+    const { businessSlug, phone, email } = req.body ?? {};
+
+    const items = await lookupBookings({
+      businessSlug: typeof businessSlug === 'string' ? businessSlug : undefined,
+      phone: typeof phone === 'string' ? phone : undefined,
+      email: typeof email === 'string' ? email : undefined,
+    });
+
+    return ok(res, { items });
+  }),
+);
 
 router.post(
   '/',

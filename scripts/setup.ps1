@@ -23,6 +23,7 @@ if (-not (Test-Path ".env")) {
   Copy-Item ".env.example" ".env"
 }
 
+Invoke-Step "Ensuring PostgreSQL is running..." { PowerShell -ExecutionPolicy Bypass -File .\scripts\ensure-postgres.ps1 }
 Invoke-Step "Syncing env files..." { node .\scripts\sync-env.mjs }
 
 Write-Host "Stopping existing Node processes to avoid Prisma file locks..."

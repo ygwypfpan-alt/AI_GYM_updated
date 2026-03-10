@@ -32,9 +32,12 @@ export function createApp(): express.Express {
         faqs: '/api/faqs',
         availability: '/api/availability',
         bookings: '/api/bookings',
+        bookingLookup: '/api/bookings/lookup',
         chat: '/api/chat/message',
         handoff: '/api/handoff-requests',
-        admin: '/api/admin/dashboard',
+        adminLogin: '/api/admin/login',
+        adminMe: '/api/admin/me',
+        adminDashboard: '/api/admin/dashboard',
       },
     }),
   );

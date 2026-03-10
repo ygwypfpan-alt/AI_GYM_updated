@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 import { ChatWidget } from '../components/chat-widget';
 import { FaqPanel } from '../components/faq-panel';
+import { MyBookings } from '../components/my-bookings';
 import { ServiceCatalog } from '../components/service-catalog';
 
 export default function HomePage() {
@@ -9,17 +10,17 @@ export default function HomePage() {
     <main className="page-shell">
       <section className="hero-card">
         <div>
-          <span className="eyebrow">AI GYM · MVP Demo</span>
-          <h1>健身房 AI 預約機器人</h1>
+          <span className="eyebrow">AI GYM MVP Demo</span>
+          <h1>AI booking assistant for a gym demo</h1>
           <p className="hero-text">
-            這個版本可以直接 demo FAQ、查詢可預約時段、建立預約、改期、取消，以及轉真人。
-            右側聊天視窗已內建 demo 快捷流程。
+            This repo now supports chat-driven booking plus a direct "my
+            bookings" management flow and a protected admin login.
           </p>
         </div>
 
         <div className="hero-actions">
           <Link href="/admin" className="button button-secondary">
-            前往後台管理頁
+            Open admin
           </Link>
           <a
             className="button"
@@ -27,32 +28,31 @@ export default function HomePage() {
             target="_blank"
             rel="noreferrer"
           >
-            打開 API Health
+            API health
           </a>
         </div>
       </section>
 
       <section className="grid-two">
         <article className="card">
-          <h2>建議 demo 方式</h2>
+          <h2>Demo flow</h2>
           <ol className="ordered-list">
-            <li>先在聊天輸入「今晚還有團體燃脂課嗎？」</li>
-            <li>點選下方出現的可預約時段，直接建立預約</li>
-            <li>建立成功後，用「改期」按鈕改到另一個時段</li>
-            <li>再用「取消預約」按鈕完成取消</li>
-            <li>最後輸入「我要真人協助」建立轉真人請求</li>
+            <li>Ask for a class in chat.</li>
+            <li>Book a suggested slot.</li>
+            <li>Use the new lookup form to find that booking.</li>
+            <li>Reschedule once and cancel once.</li>
+            <li>Open admin and confirm the data updates.</li>
           </ol>
         </article>
 
         <article className="card">
-          <h2>目前功能範圍</h2>
+          <h2>Current scope</h2>
           <ul className="bullet-list">
-            <li>網站聊天視窗</li>
-            <li>規則式 FAQ 問答</li>
-            <li>可預約時段查詢</li>
-            <li>建立 / 改期 / 取消預約</li>
-            <li>轉真人請求</li>
-            <li>後台查看 bookings、faq_items、conversations、handoff_requests</li>
+            <li>Chat FAQ and booking demo</li>
+            <li>Booking lookup by phone + email</li>
+            <li>Reschedule and cancel from lookup results</li>
+            <li>Minimal admin login with JWT</li>
+            <li>Protected admin dashboard API</li>
           </ul>
         </article>
       </section>
@@ -61,6 +61,7 @@ export default function HomePage() {
         <div className="stack">
           <ServiceCatalog />
           <FaqPanel />
+          <MyBookings />
         </div>
 
         <ChatWidget />

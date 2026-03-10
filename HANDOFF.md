@@ -8,6 +8,8 @@
 - 透過聊天查詢可預約時段
 - 直接點選時段建立預約
 - 建立後可在同一頁改期或取消
+- 可用 phone + email 查詢自己的預約
+- 可從查詢結果直接改期或取消
 - 可建立轉真人請求
 
 ### 管理端
@@ -17,6 +19,7 @@
   - faq_items
   - conversations
   - handoff_requests
+- `/admin` 現在有最小登入保護
 
 ## 2. 核心資料流
 
@@ -52,6 +55,21 @@
 2. 重新查 availability
 3. 點新 slot
 4. 送 `PATCH /api/bookings/:id/reschedule`
+
+### 查詢我的預約
+
+1. 前端送 `POST /api/bookings/lookup`
+2. API 以 `phone + email` 尋找 customer
+3. API 回傳對應 booking 清單
+4. 前端可直接從清單觸發改期或取消
+
+### Admin 登入
+
+1. 前端送 `POST /api/admin/login`
+2. API 以 `.env` 中的 `ADMIN_USERNAME` / `ADMIN_PASSWORD` 驗證
+3. API 回傳 JWT token
+4. 前端將 token 存在 localStorage
+5. 後續打 `/api/admin/*` 帶 `Authorization: Bearer <token>`
 
 ### 取消
 
@@ -120,6 +138,9 @@ Prisma schema 在：
 - `apps/web/app/admin/page.tsx`
 - `apps/web/components/chat-widget.tsx`
 - `apps/web/components/admin-dashboard.tsx`
+- `apps/web/components/admin-shell.tsx`
+- `apps/web/components/admin-login.tsx`
+- `apps/web/components/my-bookings.tsx`
 
 ### DB
 
@@ -138,7 +159,7 @@ Prisma schema 在：
 
 1. 時區目前以 `Asia/Taipei` 為主做 demo
 2. 聊天不會做自然語言深度理解
-3. 沒有身份驗證，所以 admin 僅適合本機展示
+3. admin 只有單一 env 帳密 + JWT，僅適合本機展示
 4. 沒有做多館、多分店進階規則
 5. availability rule 還是 MVP 等級，不是完整排班系統
 6. 沒有處理付款、通知、提醒、日曆同步
@@ -147,13 +168,12 @@ Prisma schema 在：
 
 ### 第一優先
 
-- 為 bookings 加上查詢 API（依 phone / email 查自己的預約）
 - 把聊天的改期 / 取消做成更完整的對話式流程
 - 把 availability rule 擴充成例外日 / 休館日 / staff 休假
+- 為 admin 補上更安全的正式 auth 方案
 
 ### 第二優先
 
-- admin 加上簡單登入
 - 增加服務 / FAQ / staff 的 CRUD
 - 增加更完整測試：
   - booking happy path

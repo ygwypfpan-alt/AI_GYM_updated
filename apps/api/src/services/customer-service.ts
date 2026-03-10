@@ -1,5 +1,7 @@
 import { prisma } from '@ai-gym/db';
 
+import { normalizeEmail, normalizePhone } from '../lib/contact.js';
+
 export type CustomerInput = {
   name?: string;
   phone?: string;
@@ -12,8 +14,8 @@ export async function findOrCreateCustomer(
   input?: CustomerInput | null,
 ) {
   const name = input?.name?.trim();
-  const phone = input?.phone?.trim();
-  const email = input?.email?.trim().toLowerCase();
+  const phone = normalizePhone(input?.phone);
+  const email = normalizeEmail(input?.email);
   const note = input?.note?.trim();
 
   if (!name && !phone && !email) {

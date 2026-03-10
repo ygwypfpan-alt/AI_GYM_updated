@@ -11,7 +11,12 @@ import {
 
 import { apiFetch } from '../lib/api';
 
-export function AdminDashboard() {
+type AdminDashboardProps = {
+  token: string;
+  onUnauthorized?: () => void;
+};
+
+export function AdminDashboard({ token, onUnauthorized }: AdminDashboardProps) {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -23,16 +28,21 @@ export function AdminDashboard() {
     try {
       const response = await apiFetch<DashboardData>(
         `/api/admin/dashboard?businessSlug=${DEFAULT_BUSINESS_SLUG}`,
+        undefined,
+        token,
       );
 
       if (isApiSuccess(response)) {
         setDashboard(response.data);
       } else {
+        if (response.error === 'Unauthorized.') {
+          onUnauthorized?.();
+        }
         setError(response.error);
       }
     } catch (loadError) {
       setError(
-        loadError instanceof Error ? loadError.message : '載入後台資料失敗',
+        loadError instanceof Error ? loadError.message : 'Failed to load dashboard.',
       );
     } finally {
       setLoading(false);
@@ -41,7 +51,7 @@ export function AdminDashboard() {
 
   useEffect(() => {
     void loadDashboard();
-  }, []);
+  }, [token]);
 
   return (
     <section className="stack">
@@ -49,18 +59,18 @@ export function AdminDashboard() {
         <div className="section-heading">
           <div>
             <span className="eyebrow">Dashboard</span>
-            <h2>資料總覽</h2>
+            <h2>Operational summary</h2>
           </div>
           <button
             type="button"
             className="button button-secondary"
             onClick={() => void loadDashboard()}
           >
-            重新整理
+            Refresh
           </button>
         </div>
 
-        {loading ? <p className="muted-text">正在載入資料...</p> : null}
+        {loading ? <p className="muted-text">Loading dashboard data...</p> : null}
         {error ? <p className="error-text">{error}</p> : null}
 
         {dashboard ? (
@@ -85,7 +95,7 @@ export function AdminDashboard() {
             </div>
 
             <p className="muted-text">
-              {dashboard.business.name} · {dashboard.business.slug} ·{' '}
+              {dashboard.business.name} | {dashboard.business.slug} |{' '}
               {dashboard.business.timezone}
             </p>
           </>
@@ -98,11 +108,11 @@ export function AdminDashboard() {
           <table>
             <thead>
               <tr>
-                <th>時間</th>
-                <th>課程</th>
-                <th>客戶</th>
-                <th>教練</th>
-                <th>狀態</th>
+                <th>Time</th>
+                <th>Service</th>
+                <th>Customer</th>
+                <th>Staff</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -117,7 +127,7 @@ export function AdminDashboard() {
                       {booking.customerPhone ?? '-'}
                     </span>
                   </td>
-                  <td>{booking.staffName ?? '待安排'}</td>
+                  <td>{booking.staffName ?? 'TBD'}</td>
                   <td>{booking.status}</td>
                 </tr>
               ))}
@@ -125,7 +135,7 @@ export function AdminDashboard() {
               {dashboard && !dashboard.bookings.length ? (
                 <tr>
                   <td colSpan={5} className="muted-text">
-                    目前沒有 bookings
+                    No bookings yet.
                   </td>
                 </tr>
               ) : null}
@@ -140,9 +150,9 @@ export function AdminDashboard() {
           <table>
             <thead>
               <tr>
-                <th>問題</th>
-                <th>答案</th>
-                <th>關鍵字</th>
+                <th>Question</th>
+                <th>Answer</th>
+                <th>Keywords</th>
               </tr>
             </thead>
             <tbody>
@@ -157,7 +167,7 @@ export function AdminDashboard() {
               {dashboard && !dashboard.faqItems.length ? (
                 <tr>
                   <td colSpan={3} className="muted-text">
-                    目前沒有 FAQ
+                    No FAQ items yet.
                   </td>
                 </tr>
               ) : null}
@@ -172,18 +182,18 @@ export function AdminDashboard() {
           <table>
             <thead>
               <tr>
-                <th>開始時間</th>
-                <th>客戶</th>
-                <th>狀態</th>
-                <th>最後訊息</th>
-                <th>訊息數</th>
+                <th>Started</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Last message</th>
+                <th>Messages</th>
               </tr>
             </thead>
             <tbody>
               {dashboard?.conversations.map((conversation) => (
                 <tr key={conversation.id}>
                   <td>{formatDateTimeDisplay(conversation.startedAt)}</td>
-                  <td>{conversation.customerName ?? '匿名訪客'}</td>
+                  <td>{conversation.customerName ?? 'Anonymous'}</td>
                   <td>{conversation.status}</td>
                   <td>{conversation.lastMessageText ?? '-'}</td>
                   <td>{conversation.messageCount}</td>
@@ -193,7 +203,7 @@ export function AdminDashboard() {
               {dashboard && !dashboard.conversations.length ? (
                 <tr>
                   <td colSpan={5} className="muted-text">
-                    目前沒有 conversations
+                    No conversations yet.
                   </td>
                 </tr>
               ) : null}
@@ -208,11 +218,11 @@ export function AdminDashboard() {
           <table>
             <thead>
               <tr>
-                <th>建立時間</th>
-                <th>姓名</th>
-                <th>電話</th>
-                <th>狀態</th>
-                <th>備註</th>
+                <th>Created</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Note</th>
               </tr>
             </thead>
             <tbody>
@@ -229,7 +239,7 @@ export function AdminDashboard() {
               {dashboard && !dashboard.handoffRequests.length ? (
                 <tr>
                   <td colSpan={5} className="muted-text">
-                    目前沒有 handoff requests
+                    No handoff requests yet.
                   </td>
                 </tr>
               ) : null}

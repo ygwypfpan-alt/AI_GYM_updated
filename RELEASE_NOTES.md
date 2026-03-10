@@ -1,5 +1,14 @@
 # RELEASE NOTES
 
+## Unreleased: next-step branch
+
+- Added minimal admin login with env credentials and JWT
+- Protected `/api/admin/dashboard` and added `/api/admin/me`
+- Added `POST /api/bookings/lookup` for phone + email based lookup
+- Added home page "My bookings" management flow for reschedule / cancel
+- Added e2e coverage for admin auth and booking lookup flows
+- Updated scripts to auto-start the local bundled PostgreSQL before setup/dev/test
+
 ## AI_GYM v0.1.0-mvp
 
 發布日期：2026-03-10

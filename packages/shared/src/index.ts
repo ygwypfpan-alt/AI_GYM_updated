@@ -127,6 +127,18 @@ export type DashboardData = {
   }>;
 };
 
+export type AdminLoginResult = {
+  token: string;
+};
+
+export type AdminMeResult = {
+  username: string;
+};
+
+export type BookingLookupResult = {
+  items: BookingDto[];
+};
+
 export type ApiSuccess<T> = {
   success: true;
   data: T;
