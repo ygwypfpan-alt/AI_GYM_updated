@@ -30,11 +30,13 @@ export function AdminShell() {
       return;
     }
 
+    const activeToken = storedToken;
+
     async function validateToken() {
       const response = await apiFetch<AdminMeResult>(
         '/api/admin/me',
         undefined,
-        storedToken,
+        activeToken,
       );
 
       if (!isApiSuccess(response)) {
@@ -44,7 +46,7 @@ export function AdminShell() {
         return;
       }
 
-      setToken(storedToken);
+      setToken(activeToken);
       setUsername(response.data.username);
       setStatus('authenticated');
     }

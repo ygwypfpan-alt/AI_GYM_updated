@@ -149,7 +149,7 @@ CORS_ORIGIN=http://localhost:3000
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
 DEFAULT_BUSINESS_SLUG=ai-gym-demo
 ADMIN_USERNAME=admin
-ADMIN_PASSWORD=change-me
+ADMIN_PASSWORD=admin123456
 ADMIN_JWT_SECRET=change-this-to-a-long-random-string
 ```
 
@@ -172,11 +172,15 @@ PowerShell -ExecutionPolicy Bypass -File .\scripts\setup.ps1
 PowerShell -ExecutionPolicy Bypass -File .\scripts\dev.ps1
 ```
 
-或直接：
+這是目前 Windows demo 最穩定的啟動方式，會先 build 再用 production-like runtime 拉起 Web 與 API。
+
+如果只是要做本機除錯，也可以直接：
 
 ```powershell
 pnpm dev
 ```
+
+但 `pnpm dev` 仍是 workspace 開發模式，穩定 demo / 錄影請優先使用 `scripts/dev.ps1`。
 
 啟動後：
 
@@ -203,6 +207,16 @@ pnpm dev
 - `現場可以停車嗎？`
 - `有提供淋浴間嗎？`
 - `第一次來適合上什麼課？`
+
+## 6.1 Demo-ready notes
+
+- Stable local startup: `PowerShell -ExecutionPolicy Bypass -File .\scripts\dev.ps1`
+- Stable demo reset: `pnpm demo:reset`
+- Demo runbook: `DEMO_RUNBOOK.md`
+- Deployment path and manual steps: `DEPLOYMENT.md`
+- Default local demo admin credentials:
+  - `ADMIN_USERNAME=admin`
+  - `ADMIN_PASSWORD=admin123456`
 
 ## 7. API 清單
 
@@ -370,6 +384,12 @@ Content-Type: application/json
 - 2 筆 demo conversations
 - 1 筆 pending handoff request
 
+如果要把 demo 狀態重置回這批資料，直接執行：
+
+```powershell
+pnpm demo:reset
+```
+
 ## 9. 測試方式
 
 ```powershell
@@ -404,7 +424,7 @@ pnpm format
 
 - 排程時區優先以 `Asia/Taipei` 為 demo 預設
 - 聊天是規則式流程，不是 LLM
-- 後台目前無登入保護，只適合本機 demo
+- 後台目前是單一 env 帳密 + JWT，適合 demo / trial，不適合正式公開
 - `pnpm install` 後仍需先建立資料庫與 `.env`
 - 若修改根目錄 `.env`，請重新執行：
   ```powershell

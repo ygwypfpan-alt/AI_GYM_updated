@@ -10,11 +10,12 @@ export default function HomePage() {
     <main className="page-shell">
       <section className="hero-card">
         <div>
-          <span className="eyebrow">AI GYM MVP Demo</span>
-          <h1>AI booking assistant for a gym demo</h1>
+          <span className="eyebrow">AI GYM Demo Release</span>
+          <h1>3-minute gym booking demo</h1>
           <p className="hero-text">
-            This repo now supports chat-driven booking plus a direct "my
-            bookings" management flow and a protected admin login.
+            Show the booking assistant, the direct &quot;my bookings&quot;
+            management flow, and the protected admin dashboard without changing
+            demo data by hand.
           </p>
         </div>
 
@@ -37,22 +38,22 @@ export default function HomePage() {
         <article className="card">
           <h2>Demo flow</h2>
           <ol className="ordered-list">
-            <li>Ask for a class in chat.</li>
+            <li>Ask a FAQ or class question in chat.</li>
             <li>Book a suggested slot.</li>
-            <li>Use the new lookup form to find that booking.</li>
+            <li>Use lookup to find that booking by phone + email.</li>
             <li>Reschedule once and cancel once.</li>
-            <li>Open admin and confirm the data updates.</li>
+            <li>Open admin and confirm the updates.</li>
           </ol>
         </article>
 
         <article className="card">
-          <h2>Current scope</h2>
+          <h2>Demo shortcuts</h2>
           <ul className="bullet-list">
-            <li>Chat FAQ and booking demo</li>
-            <li>Booking lookup by phone + email</li>
-            <li>Reschedule and cancel from lookup results</li>
-            <li>Minimal admin login with JWT</li>
-            <li>Protected admin dashboard API</li>
+            <li>Lookup seed: `0911111111 / ming@example.com`</li>
+            <li>Admin seed: root `.env` credentials</li>
+            <li>Reset demo data with `pnpm demo:reset`</li>
+            <li>Admin route: `/admin`</li>
+            <li>Health route: `http://localhost:3001/health`</li>
           </ul>
         </article>
       </section>

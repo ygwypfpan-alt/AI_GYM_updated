@@ -152,6 +152,7 @@ Prisma schema 在：
 
 - `scripts/setup.ps1`
 - `scripts/dev.ps1`
+- `scripts/reset-demo.ps1`
 - `scripts/test.ps1`
 - `scripts/sync-env.mjs`
 
@@ -201,9 +202,23 @@ Prisma schema 在：
 
 目前最簡單做法：
 
-1. 手動清空資料庫或重建 `ai_gym`
-2. 再執行：
-   - `pnpm db:migrate`
-   - `pnpm db:seed`
+```powershell
+pnpm demo:reset
+```
 
-因為本版以最短 demo 路徑為主，暫時沒有再包一層 reset 指令。
+這會：
+
+1. 確認 PostgreSQL 已啟動
+2. 同步 root `.env`
+3. 套用 Prisma migration
+4. 重新 seed `ai-gym-demo`
+
+如果是 demo / 錄影前準備，優先用這條，不要手動清資料。
+
+## 10. Demo-ready release notes
+
+- 首頁現在已明確提示 3 分鐘 demo 路徑
+- `scripts/dev.ps1` 已改為穩定啟動模式，避免 Windows 上 Web 假啟動
+- `scripts/reset-demo.ps1` 提供固定 demo reset 路徑
+- `DEMO_RUNBOOK.md` 可直接給 demo 操作者
+- `DEPLOYMENT.md` 已寫出最小公開 demo 部署步驟與 blocker
