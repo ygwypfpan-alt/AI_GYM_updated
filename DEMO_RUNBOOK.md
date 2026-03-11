@@ -38,6 +38,7 @@ Use this before every demo session if you want a known-good state:
 
 ```powershell
 pnpm demo:reset
+pnpm customer-test:reset
 ```
 
 This does two things only:
@@ -47,6 +48,13 @@ This does two things only:
 
 The seed script replaces the existing `ai-gym-demo` records, so the homepage,
 lookup flow, and admin dashboard all return to the same baseline data.
+
+The reset baseline now includes:
+
+- one upcoming booked lookup item
+- one cancelled lookup item
+- one completed lookup item
+- one pending handoff request
 
 ## Stable Startup
 
@@ -94,3 +102,11 @@ Expected result: all three return `200`.
 - Admin auth is single-account env-based auth.
 - Booking lookup uses `phone + email`, which is acceptable for demo/trial only.
 - Demo reset assumes PostgreSQL is reachable on the local machine.
+
+## Customer-Test Notes
+
+- Upcoming booked items can be rescheduled or cancelled online.
+- Cancelled and past items are intentionally view-only in the lookup UI.
+- Admin booking filters are limited to search text plus booking status.
+- If the API base URL is wrong or the API is unavailable, the frontend now shows
+  a direct fallback error instead of failing silently.

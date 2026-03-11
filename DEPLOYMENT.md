@@ -118,3 +118,14 @@ Deployment from this local environment still requires human-controlled access to
 - Do not present it as a production system.
 - Reset demo data before demos.
 - Rotate `ADMIN_JWT_SECRET` before public exposure.
+
+## Customer-Test Posture
+
+For the `customer-test-ready` branch, keep the same hosting shape but change the
+operating posture slightly:
+
+- treat the environment as limited external trial, not production
+- run `pnpm customer-test:reset` before each new customer cohort or scripted QA pass
+- keep the seeded admin account temporary and rotate it after each external round
+- verify booking lookup, reschedule, cancel, and admin booking filters after each deploy
+- expect manual support for failed requests; there is still no payment, messaging, or RBAC layer
