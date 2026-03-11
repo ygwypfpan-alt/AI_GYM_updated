@@ -5,6 +5,17 @@
 Run the AI GYM app in a stable local demo state and show the core flow in about
 3 minutes.
 
+## Current Demo Status
+
+- External demo validation: passed
+- Current posture: demo-ready, not production-ready
+- Verified flows:
+  - chat FAQ / handoff
+  - booking lookup
+  - reschedule
+  - cancel
+  - admin dashboard review
+
 ## Demo Environment
 
 - Node.js: `20.x`

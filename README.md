@@ -1,5 +1,21 @@
 # AI GYM
 
+## Current Status
+
+- Branch baseline: `codex/deploy-demo`
+- Release status: demo-ready
+- External demo validation: passed
+- Core flows verified:
+  - homepage load
+  - API health
+  - services / FAQ display
+  - chat / FAQ / handoff
+  - booking lookup
+  - reschedule
+  - cancel
+  - admin login / dashboard
+
+
 健身房 AI 預約機器人 MVP。這個版本刻意走最短可 demo 路徑，不依賴任何舊專案、外部 LLM、LINE、Email、簡訊或雲端服務。
 
 ## 1. 專案目標

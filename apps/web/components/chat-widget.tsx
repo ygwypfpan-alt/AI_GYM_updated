@@ -284,11 +284,7 @@ export function ChatWidget() {
     }
   }
 
-  async function rescheduleSlot(
-    slot: AvailabilitySlot,
-    slotIndex: number,
-    slots: AvailabilitySlot[],
-  ) {
+  async function rescheduleSlot(slot: AvailabilitySlot) {
     if (loading || slotActionPendingRef.current) {
       return;
     }
@@ -306,19 +302,6 @@ export function ChatWidget() {
         staffId: slot.staffId,
       };
 
-      console.log('[reschedule-click]', {
-        renderedLabel: slot.label,
-        renderedStartAt: slot.startAt,
-        renderedEndAt: slot.endAt,
-        slotIndex,
-        resolvedIndex: slots.findIndex(
-          (candidate) =>
-            candidate.startAt === slot.startAt &&
-            (candidate.staffId ?? null) === (slot.staffId ?? null),
-        ),
-        payload,
-      });
-
       const response = await apiFetch<{
         booking: BookingDto;
         message: string;
@@ -331,13 +314,6 @@ export function ChatWidget() {
         appendMessage(assistantMessage(`改期失敗：${response.error}`));
         return;
       }
-
-      console.log('[reschedule-response]', {
-        renderedLabel: slot.label,
-        payload,
-        bookingStartAt: response.data.booking.startAt,
-        bookingEndAt: response.data.booking.endAt,
-      });
 
       setCurrentBooking(response.data.booking);
       appendMessage(
@@ -579,7 +555,7 @@ export function ChatWidget() {
 
             {message.slots?.length ? (
               <div className="list-stack top-gap">
-                {message.slots.map((slot, slotIndex) => (
+                {message.slots.map((slot) => (
                   <button
                     key={`${message.id}-${slot.startAt}-${slot.staffId ?? 'na'}`}
                     type="button"
@@ -587,14 +563,11 @@ export function ChatWidget() {
                     disabled={loading}
                     onClick={() =>
                       message.slotMode === 'reschedule'
-                        ? void rescheduleSlot(slot, slotIndex, message.slots ?? [])
+                        ? void rescheduleSlot(slot)
                         : void bookSlot(slot)
                     }
                   >
                     <strong>{slot.label}</strong>
-                    <span className="inline-small">
-                      startAt: {slot.startAt} | index: {slotIndex}
-                    </span>
                     <span>
                       {slot.staffName ?? '待安排教練'} · 剩餘名額 {slot.remainingCapacity}
                     </span>

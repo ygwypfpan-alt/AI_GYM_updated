@@ -1,5 +1,20 @@
 # HANDOFF
 
+## Final Status
+
+- Project state: demo-ready
+- External demo validation: passed
+- Stable branch for the validated demo flow: `codex/deploy-demo`
+- Core flows confirmed:
+  - homepage load
+  - API health
+  - services / FAQ display
+  - chat / FAQ / handoff
+  - booking lookup
+  - reschedule
+  - cancel
+  - admin login / dashboard
+
 ## 1. 這個 MVP 現在能做什麼
 
 ### 使用者端

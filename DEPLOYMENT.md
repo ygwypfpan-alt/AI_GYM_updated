@@ -2,9 +2,9 @@
 
 ## Status
 
-The codebase is prepared for a public demo deployment path, but deployment is
-not completed from this environment because it requires human-controlled access
-to hosting accounts, secrets, and database provisioning.
+The codebase has passed external demo validation and is suitable for a public
+demo environment. This document records the deployment shape and the manual
+platform steps needed to recreate or update that environment.
 
 ## Chosen Deployment Path
 
@@ -101,9 +101,9 @@ Verify:
 - reschedule
 - cancel
 
-## Human-Required Blockers
+## Human-Required Platform Ownership
 
-Deployment is blocked here by:
+Deployment from this local environment still requires human-controlled access to:
 
 - hosting account login
 - Git remote ownership and repo push
