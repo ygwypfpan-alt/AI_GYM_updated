@@ -1,13 +1,15 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 
-export type Booking = Prisma.BookingGetPayload<Record<string, never>>;
-export type Conversation = Prisma.ConversationGetPayload<Record<string, never>>;
-export type Customer = Prisma.CustomerGetPayload<Record<string, never>>;
-export type FaqItem = Prisma.FaqItemGetPayload<Record<string, never>>;
-export type HandoffRequest = Prisma.HandoffRequestGetPayload<Record<string, never>>;
-export type Message = Prisma.MessageGetPayload<Record<string, never>>;
-export type Service = Prisma.ServiceGetPayload<Record<string, never>>;
-export type Staff = Prisma.StaffGetPayload<Record<string, never>>;
+export type {
+  Booking,
+  Conversation,
+  Customer,
+  FaqItem,
+  HandoffRequest,
+  Message,
+  Service,
+  Staff,
+} from '@prisma/client';
 export { Prisma };
 
 const globalForPrisma = globalThis as typeof globalThis & {
