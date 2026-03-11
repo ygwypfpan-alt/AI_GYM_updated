@@ -16,6 +16,13 @@ import { AppError } from '../lib/http.js';
 import { getBusinessBySlug } from './business-service.js';
 import { mapServiceDto } from './serializers.js';
 
+type ExistingBookingSlot = {
+  id: string;
+  startAt: Date;
+  endAt: Date;
+  staffId: string | null;
+};
+
 function overlaps(
   firstStart: Date,
   firstEnd: Date,
@@ -107,7 +114,7 @@ export async function getAvailability(params: {
     };
   }
 
-  const existingBookings = await prisma.booking.findMany({
+  const existingBookings: ExistingBookingSlot[] = await prisma.booking.findMany({
     where: bookingWhere,
     select: {
       id: true,
@@ -139,7 +146,7 @@ export async function getAvailability(params: {
           break;
         }
 
-        const overlapCount = existingBookings.filter((booking) => {
+        const overlapCount = existingBookings.filter((booking: ExistingBookingSlot) => {
           const sameStaff = (booking.staffId ?? null) === (rule.staffId ?? null);
           return sameStaff && overlaps(slotStart, slotEnd, booking.startAt, booking.endAt);
         }).length;

@@ -15,6 +15,21 @@ import { getBusinessBySlug } from './business-service.js';
 import { findOrCreateCustomer, type CustomerInput } from './customer-service.js';
 import { mapBookingDto } from './serializers.js';
 
+type RuleCandidate = {
+  startTime: string;
+  endTime: string;
+  staffId: string | null;
+  capacity: number;
+};
+
+type LookupCustomerId = {
+  id: string;
+};
+
+type SortableBooking = {
+  startAt: Date;
+};
+
 function isWithinRuleBounds(
   startTime: string,
   endTime: string,
@@ -55,10 +70,10 @@ async function resolveRuleForSlot(params: {
   });
 
   const applicable = rules
-    .filter((rule) =>
+    .filter((rule: RuleCandidate) =>
       isWithinRuleBounds(params.localStartTime, params.localEndTime, rule),
     )
-    .sort((left, right) => {
+    .sort((left: RuleCandidate, right: RuleCandidate) => {
       if ((left.staffId ?? null) === (params.staffId ?? null)) {
         return -1;
       }
@@ -344,7 +359,7 @@ export async function lookupBookings(input: {
     throw new AppError('phone and email are required.', 400);
   }
 
-  const customers = await prisma.customer.findMany({
+  const customers: LookupCustomerId[] = await prisma.customer.findMany({
     where: {
       businessId: business.id,
       phone,
@@ -363,7 +378,7 @@ export async function lookupBookings(input: {
     where: {
       businessId: business.id,
       customerId: {
-        in: customers.map((customer) => customer.id),
+        in: customers.map((customer: LookupCustomerId) => customer.id),
       },
     },
     include: {
@@ -376,7 +391,7 @@ export async function lookupBookings(input: {
   });
 
   const now = new Date();
-  const sorted = bookings.sort((left, right) => {
+  const sorted = bookings.sort((left: SortableBooking, right: SortableBooking) => {
     const leftUpcoming = left.startAt >= now ? 0 : 1;
     const rightUpcoming = right.startAt >= now ? 0 : 1;
 

@@ -5,6 +5,19 @@ import { normalizeMessageText } from '@ai-gym/shared';
 import { getBusinessBySlug } from './business-service.js';
 import { mapFaqDto } from './serializers.js';
 
+type FaqSearchItem = {
+  id: string;
+  category: string | null;
+  question: string;
+  answer: string;
+  keywords: string[];
+};
+
+type FaqScoreEntry = {
+  item: FaqSearchItem;
+  score: number;
+};
+
 function scoreFaq(
   query: string,
   item: { question: string; answer: string; keywords: string[] },
@@ -53,7 +66,7 @@ export async function searchFaqItems(params: {
 }): Promise<FaqItemDto[]> {
   const business = await getBusinessBySlug(params.businessSlug);
 
-  const items = await prisma.faqItem.findMany({
+  const items: FaqSearchItem[] = await prisma.faqItem.findMany({
     where: {
       businessId: business.id,
       isActive: true,
@@ -68,12 +81,12 @@ export async function searchFaqItems(params: {
   }
 
   return items
-    .map((item) => ({
+    .map((item: FaqSearchItem) => ({
       item,
       score: scoreFaq(params.query ?? '', item),
     }))
-    .filter((entry) => entry.score > 0)
-    .sort((left, right) => right.score - left.score)
+    .filter((entry: FaqScoreEntry) => entry.score > 0)
+    .sort((left: FaqScoreEntry, right: FaqScoreEntry) => right.score - left.score)
     .slice(0, limit)
-    .map((entry) => mapFaqDto(entry.item));
+    .map((entry: FaqScoreEntry) => mapFaqDto(entry.item));
 }

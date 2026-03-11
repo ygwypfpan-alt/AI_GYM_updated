@@ -1,14 +1,66 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+export type { Prisma } from '@prisma/client';
 
-export type Booking = Prisma.$BookingPayload['scalars'];
-export type Conversation = Prisma.$ConversationPayload['scalars'];
-export type Customer = Prisma.$CustomerPayload['scalars'];
-export type FaqItem = Prisma.$FaqItemPayload['scalars'];
-export type HandoffRequest = Prisma.$HandoffRequestPayload['scalars'];
-export type Message = Prisma.$MessagePayload['scalars'];
-export type Service = Prisma.$ServicePayload['scalars'];
-export type Staff = Prisma.$StaffPayload['scalars'];
-export { Prisma };
+export type Service = {
+  id: string;
+  name: string;
+  description: string | null;
+  durationMinutes: number;
+  price: number | null;
+};
+
+export type FaqItem = {
+  id: string;
+  category: string | null;
+  question: string;
+  answer: string;
+  keywords: string[];
+};
+
+export type Customer = {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+};
+
+export type Staff = {
+  id: string;
+  name: string;
+};
+
+export type Booking = {
+  id: string;
+  status: string;
+  startAt: Date;
+  endAt: Date;
+  serviceId: string;
+  staffId: string | null;
+  customerId: string;
+  notes: string | null;
+  cancellationReason: string | null;
+};
+
+export type Conversation = {
+  id: string;
+  status: string;
+  startedAt: Date;
+};
+
+export type Message = {
+  text: string;
+  createdAt: Date;
+};
+
+export type HandoffRequest = {
+  id: string;
+  status: string;
+  createdAt: Date;
+  name: string | null;
+  phone: string | null;
+  note: string | null;
+  conversationId: string | null;
+};
 
 const globalForPrisma = globalThis as typeof globalThis & {
   prisma?: PrismaClient;

@@ -10,6 +10,11 @@ import { searchFaqItems } from './faq-service.js';
 import { createHandoffRequest } from './handoff-service.js';
 import { mapServiceDto } from './serializers.js';
 
+type QuickReplyService = {
+  id: string;
+  name: string;
+};
+
 function defaultQuickReplies(): QuickReply[] {
   return [
     {
@@ -153,9 +158,9 @@ export async function processChatMessage(input: {
           '這個服務最近 7 天暫時沒有可預約時段。你可以改查其他課程，或先送出轉真人請求。';
         quickReplies = [
           ...services
-            .filter((service) => service.id !== matchedService.id)
+            .filter((service: QuickReplyService) => service.id !== matchedService.id)
             .slice(0, 2)
-            .map((service) => ({
+            .map((service: QuickReplyService) => ({
               label: service.name,
               kind: 'service' as const,
               value: service.name,

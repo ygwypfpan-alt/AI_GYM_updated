@@ -10,6 +10,12 @@ import {
   mapServiceDto,
 } from './serializers.js';
 
+type StaffMember = {
+  id: string;
+  name: string;
+  isActive: boolean;
+};
+
 export async function getAdminDashboard(
   businessSlug?: string,
 ): Promise<DashboardData> {
@@ -117,7 +123,7 @@ export async function getAdminDashboard(
     conversations: conversations.map(mapConversationSummary),
     handoffRequests: handoffRequests.map(mapHandoffRequestSummary),
     services: services.map(mapServiceDto),
-    staff: staff.map((member) => ({
+    staff: staff.map((member: StaffMember) => ({
       id: member.id,
       name: member.name,
       isActive: member.isActive,
