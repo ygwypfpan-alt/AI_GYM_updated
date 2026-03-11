@@ -11,8 +11,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@ai-gym/db": "1.0.0",
-    "@ai-gym/shared": "1.0.0",
+    "@ai-gym/db": "workspace:*",
+    "@ai-gym/shared": "workspace:*",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2"
