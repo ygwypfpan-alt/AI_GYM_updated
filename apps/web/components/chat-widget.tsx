@@ -12,7 +12,7 @@ import {
   type FaqItemDto,
   type QuickReply,
   type ServiceSummary,
-} from '@ai-gym/shared';
+} from '../lib/shared';
 
 import { apiFetch } from '../lib/api';
 

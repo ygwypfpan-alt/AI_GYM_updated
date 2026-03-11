@@ -6,7 +6,7 @@ import {
   DEFAULT_BUSINESS_SLUG,
   isApiSuccess,
   type FaqItemDto,
-} from '@ai-gym/shared';
+} from '../lib/shared';
 
 import { apiFetch } from '../lib/api';
 

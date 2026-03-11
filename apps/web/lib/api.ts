@@ -1,4 +1,4 @@
-import type { ApiResponse } from '@ai-gym/shared';
+import type { ApiResponse } from './shared';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';

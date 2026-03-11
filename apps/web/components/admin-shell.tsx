@@ -6,7 +6,7 @@ import {
   isApiSuccess,
   type AdminLoginResult,
   type AdminMeResult,
-} from '@ai-gym/shared';
+} from '../lib/shared';
 
 import { apiFetch } from '../lib/api';
 import { AdminDashboard } from './admin-dashboard';

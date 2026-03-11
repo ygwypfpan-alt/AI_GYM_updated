@@ -7,7 +7,7 @@ import {
   formatDateTimeDisplay,
   isApiSuccess,
   type DashboardData,
-} from '@ai-gym/shared';
+} from '../lib/shared';
 
 import { apiFetch } from '../lib/api';
 

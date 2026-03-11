@@ -7,7 +7,7 @@ import {
   formatCurrencyTwd,
   isApiSuccess,
   type ServiceSummary,
-} from '@ai-gym/shared';
+} from '../lib/shared';
 
 import { apiFetch } from '../lib/api';
 
