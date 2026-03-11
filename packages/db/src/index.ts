@@ -1,4 +1,15 @@
 import { PrismaClient } from '@prisma/client';
+export type {
+  Booking,
+  Conversation,
+  Customer,
+  FaqItem,
+  HandoffRequest,
+  Message,
+  Service,
+  Staff,
+} from '@prisma/client';
+export { Prisma } from '@prisma/client';
 
 const globalForPrisma = globalThis as typeof globalThis & {
   prisma?: PrismaClient;
@@ -13,5 +24,3 @@ export const prisma =
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
 }
-
-export * from '@prisma/client';
