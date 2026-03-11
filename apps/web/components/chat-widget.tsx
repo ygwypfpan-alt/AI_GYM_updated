@@ -77,6 +77,7 @@ export function ChatWidget() {
     email: 'demo@example.com',
   });
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const slotActionPendingRef = useRef(false);
 
   useEffect(() => {
     async function loadServices() {
@@ -230,11 +231,16 @@ export function ChatWidget() {
   }
 
   async function bookSlot(slot: AvailabilitySlot) {
+    if (loading || slotActionPendingRef.current) {
+      return;
+    }
+
     if (!customer.name.trim()) {
       appendMessage(assistantMessage('建立預約前請先填寫姓名。'));
       return;
     }
 
+    slotActionPendingRef.current = true;
     setLoading(true);
 
     try {
@@ -273,34 +279,65 @@ export function ChatWidget() {
         ),
       );
     } finally {
+      slotActionPendingRef.current = false;
       setLoading(false);
     }
   }
 
-  async function rescheduleSlot(slot: AvailabilitySlot) {
+  async function rescheduleSlot(
+    slot: AvailabilitySlot,
+    slotIndex: number,
+    slots: AvailabilitySlot[],
+  ) {
+    if (loading || slotActionPendingRef.current) {
+      return;
+    }
     if (!currentBooking) {
       appendMessage(assistantMessage('目前沒有可改期的 booking。'));
       return;
     }
 
+    slotActionPendingRef.current = true;
     setLoading(true);
 
     try {
+      const payload = {
+        slotStartAt: slot.startAt,
+        staffId: slot.staffId,
+      };
+
+      console.log('[reschedule-click]', {
+        renderedLabel: slot.label,
+        renderedStartAt: slot.startAt,
+        renderedEndAt: slot.endAt,
+        slotIndex,
+        resolvedIndex: slots.findIndex(
+          (candidate) =>
+            candidate.startAt === slot.startAt &&
+            (candidate.staffId ?? null) === (slot.staffId ?? null),
+        ),
+        payload,
+      });
+
       const response = await apiFetch<{
         booking: BookingDto;
         message: string;
       }>(`/api/bookings/${currentBooking.id}/reschedule`, {
         method: 'PATCH',
-        body: JSON.stringify({
-          slotStartAt: slot.startAt,
-          staffId: slot.staffId,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!isApiSuccess(response)) {
         appendMessage(assistantMessage(`改期失敗：${response.error}`));
         return;
       }
+
+      console.log('[reschedule-response]', {
+        renderedLabel: slot.label,
+        payload,
+        bookingStartAt: response.data.booking.startAt,
+        bookingEndAt: response.data.booking.endAt,
+      });
 
       setCurrentBooking(response.data.booking);
       appendMessage(
@@ -315,6 +352,7 @@ export function ChatWidget() {
         assistantMessage(error instanceof Error ? error.message : '改期失敗。'),
       );
     } finally {
+      slotActionPendingRef.current = false;
       setLoading(false);
     }
   }
@@ -491,6 +529,7 @@ export function ChatWidget() {
                     key={`${message.id}-${reply.label}`}
                     type="button"
                     className="chip-button"
+                    disabled={loading}
                     onClick={() => handleQuickReply(reply)}
                   >
                     {reply.label}
@@ -506,6 +545,7 @@ export function ChatWidget() {
                     key={`${message.id}-${service.id}`}
                     type="button"
                     className="selection-card"
+                    disabled={loading}
                     onClick={() =>
                       void showAvailability(
                         service.id,
@@ -539,18 +579,22 @@ export function ChatWidget() {
 
             {message.slots?.length ? (
               <div className="list-stack top-gap">
-                {message.slots.map((slot) => (
+                {message.slots.map((slot, slotIndex) => (
                   <button
                     key={`${message.id}-${slot.startAt}-${slot.staffId ?? 'na'}`}
                     type="button"
                     className="selection-card"
+                    disabled={loading}
                     onClick={() =>
                       message.slotMode === 'reschedule'
-                        ? void rescheduleSlot(slot)
+                        ? void rescheduleSlot(slot, slotIndex, message.slots ?? [])
                         : void bookSlot(slot)
                     }
                   >
                     <strong>{slot.label}</strong>
+                    <span className="inline-small">
+                      startAt: {slot.startAt} | index: {slotIndex}
+                    </span>
                     <span>
                       {slot.staffName ?? '待安排教練'} · 剩餘名額 {slot.remainingCapacity}
                     </span>
