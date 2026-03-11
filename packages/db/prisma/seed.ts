@@ -263,6 +263,33 @@ async function main() {
     },
   });
 
+  await prisma.booking.create({
+    data: {
+      businessId: business.id,
+      customerId: customer1.id,
+      serviceId: introSession.id,
+      staffId: alice.id,
+      status: 'CANCELLED',
+      startAt: atTaipei(dayAfterTomorrow, '11:00'),
+      endAt: atTaipei(dayAfterTomorrow, '11:30'),
+      notes: 'Seeded cancelled booking for lookup edge-case testing.',
+      cancellationReason: 'Seeded cancelled example for customer testing.',
+    },
+  });
+
+  await prisma.booking.create({
+    data: {
+      businessId: business.id,
+      customerId: customer1.id,
+      serviceId: personalTraining.id,
+      staffId: alice.id,
+      status: 'COMPLETED',
+      startAt: atTaipei(today, '09:00'),
+      endAt: atTaipei(today, '10:00'),
+      notes: 'Seeded completed booking for admin filter checks.',
+    },
+  });
+
   const conversation2 = await prisma.conversation.create({
     data: {
       businessId: business.id,

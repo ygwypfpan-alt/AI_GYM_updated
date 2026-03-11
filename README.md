@@ -15,6 +15,29 @@
   - cancel
   - admin login / dashboard
 
+## Customer-Test Ready Delta
+
+Work for `codex/feat/customer-test-ready` extends the locked demo baseline
+without modifying `v0.3.1-final-handoff`.
+
+This iteration adds only the minimum changes needed for limited external
+customer testing:
+
+- safer booking / lookup / reschedule / cancel edge-case handling
+- seeded reset data that includes booked, cancelled, and completed examples
+- basic admin booking search and status filtering
+- stronger API/frontend fallback messages for network and deploy errors
+- customer-test runbook guidance
+
+New reset command aliases:
+
+```powershell
+pnpm demo:reset
+pnpm customer-test:reset
+```
+
+Both commands restore the same seeded local baseline.
+
 
 健身房 AI 預約機器人 MVP。這個版本刻意走最短可 demo 路徑，不依賴任何舊專案、外部 LLM、LINE、Email、簡訊或雲端服務。
 

@@ -126,6 +126,7 @@ export async function getAvailability(params: {
 
   const dedupe = new Set<string>();
   const slots: AvailabilitySlot[] = [];
+  const now = new Date();
 
   for (const date of dates) {
     const dayOfWeek = dayOfWeekFromDateString(date);
@@ -144,6 +145,11 @@ export async function getAvailability(params: {
 
         if (slotEnd > ruleEnd) {
           break;
+        }
+
+        if (slotStart.getTime() <= now.getTime()) {
+          pointer = addMinutes(slotStart, rule.slotIntervalMinutes);
+          continue;
         }
 
         const overlapCount = existingBookings.filter((booking: ExistingBookingSlot) => {

@@ -50,8 +50,17 @@ router.get(
       typeof req.query.businessSlug === 'string'
         ? req.query.businessSlug
         : undefined;
+    const query =
+      typeof req.query.query === 'string' ? req.query.query : undefined;
+    const bookingStatus =
+      typeof req.query.bookingStatus === 'string'
+        ? req.query.bookingStatus
+        : undefined;
 
-    const dashboard = await getAdminDashboard(businessSlug);
+    const dashboard = await getAdminDashboard(businessSlug, {
+      query,
+      bookingStatus,
+    });
     return ok(res, dashboard);
   }),
 );

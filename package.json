@@ -23,6 +23,7 @@
     "db:seed": "node ./scripts/sync-env.mjs && pnpm --filter @ai-gym/db prisma:seed",
     "db:setup": "pnpm run db:generate && pnpm run db:migrate && pnpm run db:seed",
     "demo:reset": "powershell -ExecutionPolicy Bypass -File .\\scripts\\reset-demo.ps1",
+    "customer-test:reset": "powershell -ExecutionPolicy Bypass -File .\\scripts\\reset-demo.ps1",
     "test": "node ./scripts/sync-env.mjs && pnpm --filter @ai-gym/shared build && pnpm --filter @ai-gym/db build && pnpm --filter @ai-gym/tests-e2e test"
   },
   "devDependencies": {

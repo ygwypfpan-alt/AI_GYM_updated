@@ -9,8 +9,8 @@ import {
   formatTimeInTimezone,
   isValidDate,
 } from '../lib/datetime.js';
-import { AppError } from '../lib/http.js';
 import { normalizeEmail, normalizePhone } from '../lib/contact.js';
+import { AppError } from '../lib/http.js';
 import { getBusinessBySlug } from './business-service.js';
 import { findOrCreateCustomer, type CustomerInput } from './customer-service.js';
 import { mapBookingDto } from './serializers.js';
@@ -36,6 +36,12 @@ function isWithinRuleBounds(
   rule: { startTime: string; endTime: string },
 ): boolean {
   return rule.startTime <= startTime && rule.endTime >= endTime;
+}
+
+function ensureFutureBookingTime(startAt: Date, message: string) {
+  if (startAt.getTime() <= Date.now()) {
+    throw new AppError(message, 400);
+  }
 }
 
 async function resolveRuleForSlot(params: {
@@ -85,14 +91,13 @@ async function resolveRuleForSlot(params: {
       return 0;
     });
 
-  if (applicable.length === 0) {
-    throw new AppError('這個時段不在可預約範圍內。', 400);
-  }
-
   const rule = applicable[0];
 
   if (!rule) {
-    throw new AppError('No availability rule matched this slot.', 400);
+    throw new AppError(
+      'This time slot is outside the available booking window.',
+      400,
+    );
   }
 
   return rule;
@@ -141,7 +146,10 @@ async function ensureSlotAvailable(params: {
   });
 
   if (overlapCount >= rule.capacity) {
-    throw new AppError('此時段剛好被訂走，請改選其他時段。', 409);
+    throw new AppError(
+      'This slot has already been taken. Please choose another slot.',
+      409,
+    );
   }
 
   return rule;
@@ -166,18 +174,23 @@ export async function createBooking(input: {
   });
 
   if (!service) {
-    throw new AppError('找不到指定的服務。', 404);
+    throw new AppError('The requested service was not found.', 404);
   }
 
   if (!input.customer.name?.trim()) {
-    throw new AppError('建立預約至少需要 customer.name。', 400);
+    throw new AppError('customer.name is required to create a booking.', 400);
   }
 
   const startAt = new Date(input.slotStartAt);
 
   if (!isValidDate(startAt)) {
-    throw new AppError('slotStartAt 不是有效時間。', 400);
+    throw new AppError('slotStartAt must be a valid datetime.', 400);
   }
+
+  ensureFutureBookingTime(
+    startAt,
+    'Bookings must be created for a future time slot.',
+  );
 
   const endAt = addMinutes(startAt, service.durationMinutes);
 
@@ -193,10 +206,10 @@ export async function createBooking(input: {
   const customer = await findOrCreateCustomer(business.id, input.customer);
 
   if (!customer) {
-    throw new AppError('建立預約失敗，找不到 customer 資料。', 400);
+    throw new AppError('Unable to create or find the customer record.', 400);
   }
 
-  let validatedConversationId: string | undefined = undefined;
+  let validatedConversationId: string | undefined;
 
   if (input.conversationId) {
     const conversation = await prisma.conversation.findFirst({
@@ -207,7 +220,7 @@ export async function createBooking(input: {
     });
 
     if (!conversation) {
-      throw new AppError('找不到指定的 conversation。', 404);
+      throw new AppError('The requested conversation was not found.', 404);
     }
 
     validatedConversationId = conversation.id;
@@ -264,17 +277,36 @@ export async function rescheduleBooking(input: {
   });
 
   if (!booking) {
-    throw new AppError('找不到指定的 booking。', 404);
+    throw new AppError('The requested booking was not found.', 404);
   }
 
   if (booking.status === 'CANCELLED') {
-    throw new AppError('這筆 booking 已取消，不能再改期。', 400);
+    throw new AppError(
+      'This booking is already cancelled and cannot be rescheduled.',
+      400,
+    );
+  }
+
+  if (booking.startAt.getTime() <= Date.now()) {
+    throw new AppError(
+      'Started or past bookings cannot be rescheduled online.',
+      400,
+    );
   }
 
   const newStartAt = new Date(input.slotStartAt);
 
   if (!isValidDate(newStartAt)) {
-    throw new AppError('slotStartAt 不是有效時間。', 400);
+    throw new AppError('slotStartAt must be a valid datetime.', 400);
+  }
+
+  ensureFutureBookingTime(
+    newStartAt,
+    'Bookings can only be rescheduled to a future time slot.',
+  );
+
+  if (newStartAt.getTime() === booking.startAt.getTime()) {
+    throw new AppError('Please choose a different time slot.', 400);
   }
 
   const newEndAt = addMinutes(newStartAt, booking.service.durationMinutes);
@@ -324,7 +356,18 @@ export async function cancelBooking(input: {
   });
 
   if (!booking) {
-    throw new AppError('找不到指定的 booking。', 404);
+    throw new AppError('The requested booking was not found.', 404);
+  }
+
+  if (booking.status === 'CANCELLED') {
+    throw new AppError('This booking is already cancelled.', 409);
+  }
+
+  if (booking.startAt.getTime() <= Date.now()) {
+    throw new AppError(
+      'Started or past bookings cannot be cancelled online.',
+      400,
+    );
   }
 
   const updated = await prisma.booking.update({
@@ -333,7 +376,8 @@ export async function cancelBooking(input: {
     },
     data: {
       status: 'CANCELLED',
-      cancellationReason: input.reason?.trim() || '使用者於網站聊天視窗取消',
+      cancellationReason:
+        input.reason?.trim() || 'Cancelled from customer self-service.',
       updatedAt: new Date(),
     },
     include: {

@@ -24,6 +24,7 @@ Invoke-Step "Applying database migrations..." { pnpm --filter @ai-gym/db exec pr
 Invoke-Step "Resetting demo seed data..." { pnpm --filter @ai-gym/db prisma:seed }
 
 Write-Host ""
-Write-Host "Demo data reset completed."
+Write-Host "Demo / customer-test data reset completed."
 Write-Host "Seeded lookup user: 0911111111 / ming@example.com"
 Write-Host "Seeded admin user: admin / admin123456"
+Write-Host "Sample booking states: upcoming booked, cancelled, completed"

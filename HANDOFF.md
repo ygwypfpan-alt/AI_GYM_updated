@@ -15,6 +15,29 @@
   - cancel
   - admin login / dashboard
 
+## Customer-Test Handoff Addendum
+
+Follow-up work on `codex/feat/customer-test-ready` should preserve the
+`v0.3.1-final-handoff` baseline and only add minimum trial-readiness changes.
+
+What changed for customer testing:
+
+- booking creation now rejects past slots
+- reschedule rejects same-slot and already-started bookings
+- cancel rejects already-cancelled and already-started bookings
+- admin dashboard supports booking text search and status filtering
+- reset data now includes booked, cancelled, and completed sample states
+- frontend API calls fail with clearer fallback messages when the API is down or returns non-JSON
+
+Known remaining customer-test risks:
+
+- admin auth is still single-account env auth with JWT
+- booking lookup remains `phone + email` only
+- no payment, notification, LINE, analytics, or production RBAC
+- manual reset is still the recovery path after heavy test use
+
+See `CUSTOMER_TEST_RUNBOOK.md` for the intended external-trial workflow.
+
 ## 1. 這個 MVP 現在能做什麼
 
 ### 使用者端

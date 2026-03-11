@@ -16,34 +16,56 @@ type AdminDashboardProps = {
   onUnauthorized?: () => void;
 };
 
+type BookingStatusFilter = 'ALL' | 'BOOKED' | 'CANCELLED' | 'COMPLETED';
+
 export function AdminDashboard({ token, onUnauthorized }: AdminDashboardProps) {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [bookingStatusInput, setBookingStatusInput] =
+    useState<BookingStatusFilter>('ALL');
+  const [bookingStatusFilter, setBookingStatusFilter] =
+    useState<BookingStatusFilter>('ALL');
 
-  async function loadDashboard() {
+  async function loadDashboard(
+    nextSearchQuery = searchQuery,
+    nextStatusFilter = bookingStatusFilter,
+  ) {
     setLoading(true);
     setError(null);
 
     try {
+      const params = new URLSearchParams({
+        businessSlug: DEFAULT_BUSINESS_SLUG,
+      });
+
+      if (nextSearchQuery.trim()) {
+        params.set('query', nextSearchQuery.trim());
+      }
+
+      if (nextStatusFilter !== 'ALL') {
+        params.set('bookingStatus', nextStatusFilter);
+      }
+
       const response = await apiFetch<DashboardData>(
-        `/api/admin/dashboard?businessSlug=${DEFAULT_BUSINESS_SLUG}`,
+        `/api/admin/dashboard?${params.toString()}`,
         undefined,
         token,
       );
 
       if (isApiSuccess(response)) {
         setDashboard(response.data);
-      } else {
-        if (response.error === 'Unauthorized.') {
-          onUnauthorized?.();
-        }
-        setError(response.error);
+        return;
       }
-    } catch (loadError) {
-      setError(
-        loadError instanceof Error ? loadError.message : 'Failed to load dashboard.',
-      );
+
+      if (response.error === 'Unauthorized.') {
+        onUnauthorized?.();
+      }
+
+      setDashboard(null);
+      setError(response.error);
     } finally {
       setLoading(false);
     }
@@ -67,6 +89,60 @@ export function AdminDashboard({ token, onUnauthorized }: AdminDashboardProps) {
             onClick={() => void loadDashboard()}
           >
             Refresh
+          </button>
+        </div>
+
+        <div className="form-grid top-gap">
+          <label>
+            Search bookings
+            <input
+              value={searchInput}
+              placeholder="Customer, phone, email, service, staff"
+              onChange={(event) => setSearchInput(event.target.value)}
+            />
+          </label>
+          <label>
+            Booking status
+            <select
+              value={bookingStatusInput}
+              onChange={(event) =>
+                setBookingStatusInput(event.target.value as BookingStatusFilter)
+              }
+            >
+              <option value="ALL">All</option>
+              <option value="BOOKED">Booked</option>
+              <option value="CANCELLED">Cancelled</option>
+              <option value="COMPLETED">Completed</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="hero-actions top-gap">
+          <button
+            type="button"
+            className="button"
+            disabled={loading}
+            onClick={() => {
+              setSearchQuery(searchInput);
+              setBookingStatusFilter(bookingStatusInput);
+              void loadDashboard(searchInput, bookingStatusInput);
+            }}
+          >
+            Apply filters
+          </button>
+          <button
+            type="button"
+            className="button button-secondary"
+            disabled={loading}
+            onClick={() => {
+              setSearchInput('');
+              setSearchQuery('');
+              setBookingStatusInput('ALL');
+              setBookingStatusFilter('ALL');
+              void loadDashboard('', 'ALL');
+            }}
+          >
+            Clear
           </button>
         </div>
 
@@ -98,6 +174,15 @@ export function AdminDashboard({ token, onUnauthorized }: AdminDashboardProps) {
               {dashboard.business.name} | {dashboard.business.slug} |{' '}
               {dashboard.business.timezone}
             </p>
+            {searchQuery || bookingStatusFilter !== 'ALL' ? (
+              <p className="muted-text">
+                Booking table filtered by
+                {searchQuery ? ` query "${searchQuery}"` : ' query <none>'}
+                {bookingStatusFilter !== 'ALL'
+                  ? ` and status ${bookingStatusFilter}`
+                  : ''}.
+              </p>
+            ) : null}
           </>
         ) : null}
       </div>
@@ -135,7 +220,7 @@ export function AdminDashboard({ token, onUnauthorized }: AdminDashboardProps) {
               {dashboard && !dashboard.bookings.length ? (
                 <tr>
                   <td colSpan={5} className="muted-text">
-                    No bookings yet.
+                    No bookings match the current filters.
                   </td>
                 </tr>
               ) : null}

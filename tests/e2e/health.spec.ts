@@ -2,6 +2,7 @@ import request from 'supertest';
 
 import { createApp } from '../../apps/api/src/app.ts';
 import { detectIntent } from '../../apps/api/src/lib/intent.ts';
+import { prisma } from '../../packages/db/src/index.ts';
 
 const app = createApp();
 
@@ -77,14 +78,14 @@ async function createLookupBooking() {
       },
       phone,
       email,
-      alternateSlot: slots[1],
+      slots,
     };
   }
 
   throw new Error('No service with at least two available slots was found.');
 }
 
-describe('AI GYM next-step API tests', () => {
+describe('AI GYM customer-test-ready API tests', () => {
   it('returns health payload', async () => {
     const response = await request(app).get('/health');
 
@@ -99,9 +100,9 @@ describe('AI GYM next-step API tests', () => {
   });
 
   it('detects key intents', () => {
-    expect(detectIntent('營業時間幾點到幾點？')).toBe('FAQ');
-    expect(detectIntent('今晚還有團體燃脂課嗎？')).toBe('AVAILABILITY');
-    expect(detectIntent('我要真人協助')).toBe('HANDOFF');
+    expect(detectIntent('What are your hours?')).toBe('FAQ');
+    expect(detectIntent('Do you have availability tonight?')).toBe('AVAILABILITY');
+    expect(detectIntent('I need a human agent')).toBe('HANDOFF');
   });
 
   it('rejects admin dashboard without a token', async () => {
@@ -143,6 +144,31 @@ describe('AI GYM next-step API tests', () => {
     });
   });
 
+  it('supports admin booking search and status filters', async () => {
+    const token = await getAdminToken();
+
+    const response = await request(app)
+      .get('/api/admin/dashboard')
+      .query({
+        businessSlug: 'ai-gym-demo',
+        query: 'ming@example.com',
+        bookingStatus: 'CANCELLED',
+      })
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.bookings.length).toBeGreaterThan(0);
+    expect(response.body.data.bookings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          customerEmail: 'ming@example.com',
+          status: 'CANCELLED',
+        }),
+      ]),
+    );
+  });
+
   it('looks up bookings by phone and email', async () => {
     const created = await createLookupBooking();
 
@@ -165,6 +191,19 @@ describe('AI GYM next-step API tests', () => {
     );
   });
 
+  it('rejects lookup requests without both phone and email', async () => {
+    const response = await request(app).post('/api/bookings/lookup').send({
+      businessSlug: 'ai-gym-demo',
+      phone: '0911111111',
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      success: false,
+      error: 'phone and email are required.',
+    });
+  });
+
   it('returns an empty array when lookup finds nothing', async () => {
     const response = await request(app).post('/api/bookings/lookup').send({
       businessSlug: 'ai-gym-demo',
@@ -181,14 +220,38 @@ describe('AI GYM next-step API tests', () => {
     });
   });
 
+  it('rejects bookings created in the past', async () => {
+    const servicesResponse = await request(app).get('/api/services').query({
+      businessSlug: 'ai-gym-demo',
+    });
+    const firstService = servicesResponse.body.data.services[0] as { id: string };
+
+    const response = await request(app).post('/api/bookings').send({
+      businessSlug: 'ai-gym-demo',
+      serviceId: firstService.id,
+      slotStartAt: '2020-01-01T10:00:00.000Z',
+      customer: {
+        name: 'Past Booking',
+        phone: '0933333333',
+        email: 'past@example.com',
+      },
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      success: false,
+      error: 'Bookings must be created for a future time slot.',
+    });
+  });
+
   it('reschedules a looked-up booking and keeps it booked', async () => {
     const created = await createLookupBooking();
 
     const response = await request(app)
       .patch(`/api/bookings/${created.booking.id}/reschedule`)
       .send({
-        slotStartAt: created.alternateSlot.startAt,
-        staffId: created.alternateSlot.staffId,
+        slotStartAt: created.slots[1]?.startAt,
+        staffId: created.slots[1]?.staffId,
       });
 
     expect(response.status).toBe(200);
@@ -197,9 +260,51 @@ describe('AI GYM next-step API tests', () => {
       expect.objectContaining({
         id: created.booking.id,
         status: 'BOOKED',
-        startAt: created.alternateSlot.startAt,
+        startAt: created.slots[1]?.startAt,
       }),
     );
+  });
+
+  it('rejects rescheduling to the same slot', async () => {
+    const created = await createLookupBooking();
+
+    const response = await request(app)
+      .patch(`/api/bookings/${created.booking.id}/reschedule`)
+      .send({
+        slotStartAt: created.booking.startAt,
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      success: false,
+      error: 'Please choose a different time slot.',
+    });
+  });
+
+  it('rejects rescheduling for a started booking', async () => {
+    const created = await createLookupBooking();
+    await prisma.booking.update({
+      where: {
+        id: created.booking.id,
+      },
+      data: {
+        startAt: new Date('2020-01-02T10:00:00.000Z'),
+        endAt: new Date('2020-01-02T10:45:00.000Z'),
+      },
+    });
+
+    const response = await request(app)
+      .patch(`/api/bookings/${created.booking.id}/reschedule`)
+      .send({
+        slotStartAt: created.slots[1]?.startAt,
+        staffId: created.slots[1]?.staffId,
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      success: false,
+      error: 'Started or past bookings cannot be rescheduled online.',
+    });
   });
 
   it('cancels a looked-up booking', async () => {
@@ -220,5 +325,50 @@ describe('AI GYM next-step API tests', () => {
         cancellationReason: 'Cancelled in automated test.',
       }),
     );
+  });
+
+  it('rejects cancelling the same booking twice', async () => {
+    const created = await createLookupBooking();
+
+    await request(app).patch(`/api/bookings/${created.booking.id}/cancel`).send({
+      reason: 'First cancel.',
+    });
+
+    const response = await request(app)
+      .patch(`/api/bookings/${created.booking.id}/cancel`)
+      .send({
+        reason: 'Second cancel.',
+      });
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({
+      success: false,
+      error: 'This booking is already cancelled.',
+    });
+  });
+
+  it('rejects cancelling a started booking', async () => {
+    const created = await createLookupBooking();
+    await prisma.booking.update({
+      where: {
+        id: created.booking.id,
+      },
+      data: {
+        startAt: new Date('2020-01-03T10:00:00.000Z'),
+        endAt: new Date('2020-01-03T10:45:00.000Z'),
+      },
+    });
+
+    const response = await request(app)
+      .patch(`/api/bookings/${created.booking.id}/cancel`)
+      .send({
+        reason: 'Too late.',
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      success: false,
+      error: 'Started or past bookings cannot be cancelled online.',
+    });
   });
 });
