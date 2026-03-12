@@ -37,9 +37,9 @@ function resolvePublicApiBaseUrl() {
   const configuredApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
 
   if (!configuredApiBaseUrl) {
-    if (isLocalDevelopment() || isBrowserLocalHost() || !isVercelDeployment()) {
-      return resolveLocalApiBaseUrl();
-    }
+     if (isLocalDevelopment() || isBrowserLocalHost()) {
+       return resolveLocalApiBaseUrl();
+     }
 
     throw new Error(
       'NEXT_PUBLIC_API_BASE_URL is required outside local development.',
