@@ -4,6 +4,7 @@ import { ChatWidget } from '../components/chat-widget';
 import { FaqPanel } from '../components/faq-panel';
 import { MyBookings } from '../components/my-bookings';
 import { ServiceCatalog } from '../components/service-catalog';
+import { PUBLIC_API_HEALTH_URL } from '../lib/public-env';
 
 export default function HomePage() {
   return (
@@ -25,7 +26,7 @@ export default function HomePage() {
           </Link>
           <a
             className="button"
-            href="http://localhost:3001/health"
+            href={PUBLIC_API_HEALTH_URL}
             target="_blank"
             rel="noreferrer"
           >
@@ -53,7 +54,7 @@ export default function HomePage() {
             <li>Admin seed: root `.env` credentials</li>
             <li>Reset demo data with `pnpm demo:reset`</li>
             <li>Admin route: `/admin`</li>
-            <li>Health route: `http://localhost:3001/health`</li>
+            <li>Health route: {PUBLIC_API_HEALTH_URL}</li>
           </ul>
         </article>
       </section>
