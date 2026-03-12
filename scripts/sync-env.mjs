@@ -6,6 +6,49 @@ const currentDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(currentDir, '..');
 const rootEnvPath = resolve(rootDir, '.env');
 const rootEnvExamplePath = resolve(rootDir, '.env.example');
+const processEnvOverrides = [
+  'DATABASE_URL',
+  'NEXT_PUBLIC_API_BASE_URL',
+  'NEXT_PUBLIC_DEFAULT_BUSINESS_SLUG',
+  'NEXT_PUBLIC_ENV_PROFILE',
+  'NEXT_PUBLIC_LOOKUP_HINT_PHONE',
+  'NEXT_PUBLIC_LOOKUP_HINT_EMAIL',
+];
+
+function mergeEnvContent(envContent) {
+  const lines = envContent.split(/\r?\n/);
+  const mergedLines = [...lines];
+  const existingKeys = new Set();
+
+  for (const [index, line] of lines.entries()) {
+    const trimmedLine = line.trim();
+
+    if (!trimmedLine || trimmedLine.startsWith('#')) {
+      continue;
+    }
+
+    const separatorIndex = line.indexOf('=');
+
+    if (separatorIndex === -1) {
+      continue;
+    }
+
+    const key = line.slice(0, separatorIndex).trim();
+    existingKeys.add(key);
+
+    if (processEnvOverrides.includes(key) && process.env[key]) {
+      mergedLines[index] = `${key}=${process.env[key]}`;
+    }
+  }
+
+  for (const key of processEnvOverrides) {
+    if (!existingKeys.has(key) && process.env[key]) {
+      mergedLines.push(`${key}=${process.env[key]}`);
+    }
+  }
+
+  return mergedLines.join('\n');
+}
 
 if (!existsSync(rootEnvPath) && existsSync(rootEnvExamplePath)) {
   copyFileSync(rootEnvExamplePath, rootEnvPath);
@@ -17,7 +60,7 @@ if (!existsSync(rootEnvPath)) {
   process.exit(0);
 }
 
-const envContent = readFileSync(rootEnvPath, 'utf8');
+const envContent = mergeEnvContent(readFileSync(rootEnvPath, 'utf8'));
 
 const targets = [
   resolve(rootDir, 'apps', 'api', '.env'),
