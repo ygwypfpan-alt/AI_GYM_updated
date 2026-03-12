@@ -1,120 +1,91 @@
 # DEPLOYMENT
 
-## Status
+## Deployment Posture
 
-The codebase has passed external demo validation and is suitable for a public
-demo environment. This document records the deployment shape and the manual
-platform steps needed to recreate or update that environment.
+This repo is in deployment stabilization / convergence, not feature work.
 
-## Chosen Deployment Path
+There are two distinct web deployment lines:
 
-- Web: Vercel
-- API + PostgreSQL: Railway
+- Public demo line: `codex/public-demo-stable` at `c39729f`
+- Pilot web line: `codex/deploy-demo` at `c5cbb90`
 
-This path keeps the current architecture intact and avoids a rebuild.
+Do not mix these two lines in Vercel or in env management.
 
-## What Must Be Deployed
+## Deployment Map
 
-### Web app
+### Public demo
 
-- Folder: `apps/web`
-- Runtime: Next.js
-- Required env:
-  - `NEXT_PUBLIC_API_BASE_URL`
+- Vercel project: `ai-gym-updated-web`
+- Production Branch: `codex/public-demo-stable`
+- Stable rollback target: `c39729f`
+- Purpose: frozen public demo
 
-### API app
+### Pilot web
 
-- Folder: `apps/api`
-- Runtime: Node.js
-- Required env:
-  - `DATABASE_URL`
-  - `API_PORT`
-  - `CORS_ORIGIN`
-  - `DEFAULT_BUSINESS_SLUG`
-  - `ADMIN_USERNAME`
-  - `ADMIN_PASSWORD`
-  - `ADMIN_JWT_SECRET`
+- Vercel project: `ai-gym-updated-pilot-web`
+- Deploy branch: `codex/deploy-demo`
+- Stable deploy target: `c5cbb90`
+- Verified API health target:
+  `https://aigymupdated-pilot.up.railway.app/health`
+- Purpose: active pilot-facing web line
 
-### Database
+## Required Separation
 
-- PostgreSQL
-- After provisioning, run:
+Public demo and pilot web are separate deployment lines.
 
-```powershell
-pnpm --filter @ai-gym/db exec prisma migrate deploy
-pnpm --filter @ai-gym/db prisma:seed
-```
+- Do not point both Vercel projects at the same branch.
+- Do not share web env values between the two projects.
+- Do not assume a public demo rollback also rolls back pilot web.
 
-## Manual Steps
+## Convergence Facts Closed In This Round
 
-### 1. Push the demo-ready branch to a Git remote
+The deployment stabilization work closed four already-confirmed failure points:
 
-This requires a human-owned GitHub or Git provider account.
+1. public API base fallback was too broad
+2. `sync-env` could write incorrect deployment values
+3. `apps/web` contained localhost hardcoding / fallback on the web path
+4. `apps/web` build-time guard now blocks localhost API targets in Vercel
+   preview / production
 
-### 2. Provision PostgreSQL in Railway
+If a similar regression returns, start with those four areas. Do not restart
+from scratch by re-tracing the old localhost symptom first.
 
-1. Create a new Railway project.
-2. Add PostgreSQL.
-3. Copy the Railway PostgreSQL connection string.
-4. Save it as `DATABASE_URL` for the API service.
+## Minimal Rollback Guide
 
-### 3. Deploy the API in Railway
+### Roll back public demo
 
-1. Create a service from the repo.
-2. Set the root directory to the repo root.
-3. Use these commands:
-   - Build: `pnpm install && pnpm --filter @ai-gym/shared build && pnpm --filter @ai-gym/db build && pnpm --filter @ai-gym/api build`
-   - Start: `node apps/api/dist/index.js`
-4. Add env vars:
-   - `DATABASE_URL=<railway postgres url>`
-   - `API_PORT=3001`
-   - `CORS_ORIGIN=<vercel web url>`
-   - `DEFAULT_BUSINESS_SLUG=ai-gym-demo`
-   - `ADMIN_USERNAME=admin`
-   - `ADMIN_PASSWORD=admin123456`
-   - `ADMIN_JWT_SECRET=<generate a long random secret>`
-5. Run Prisma migration and seed once in Railway shell:
+Target:
 
-```powershell
-pnpm --filter @ai-gym/db exec prisma migrate deploy
-pnpm --filter @ai-gym/db prisma:seed
-```
+- Branch: `codex/public-demo-stable`
+- Commit: `c39729f`
 
-### 4. Deploy the web app in Vercel
+Use this when the old public demo project needs to be restored to the frozen
+stable line.
 
-1. Import the same repo into Vercel.
-2. Set the root directory to `apps/web`.
-3. Framework preset: Next.js.
-4. Add env var:
-   - `NEXT_PUBLIC_API_BASE_URL=<railway api base url>`
-5. Deploy.
+### Roll back or re-stabilize pilot web
 
-### 5. Smoke test the public demo
+Target:
 
-Verify:
+- Branch: `codex/deploy-demo`
+- Commit: `c5cbb90`
 
-- `/`
-- `/admin`
-- API `/health`
-- admin login
-- booking lookup
-- reschedule
-- cancel
+Use this when the pilot web project needs to return to the last verified stable
+deployment line.
 
-## Human-Required Platform Ownership
+## Minimal Smoke Checklist
 
-Deployment from this local environment still requires human-controlled access to:
+Run this after any deploy, rollback, or branch change:
 
-- hosting account login
-- Git remote ownership and repo push
-- PostgreSQL provisioning in Railway
-- Vercel project creation
-- production secret generation and storage
-- optional custom domain and billing decisions
+1. Homepage opens.
+2. `API health` opens the correct Railway URL for that project.
+3. No page or health link falls back to `localhost:3001` or
+   `localhost:3001/health`.
+4. Public demo and pilot web env values remain isolated.
 
-## Recommended Public Demo Posture
+## Ownership Notes
 
-- Keep this as a time-boxed demo environment.
-- Do not present it as a production system.
-- Reset demo data before demos.
-- Rotate `ADMIN_JWT_SECRET` before public exposure.
+- Public demo project owner should treat `codex/public-demo-stable` as frozen.
+- Pilot web project owner should treat `codex/deploy-demo` as the active deploy
+  line.
+- This document is the handoff baseline for rollback and maintenance, not a
+  feature roadmap.
