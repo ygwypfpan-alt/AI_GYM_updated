@@ -26,7 +26,7 @@ if (-not (Test-Path $PgCtl) -or -not (Test-Path $PgData)) {
 }
 
 Write-Host 'Starting local PostgreSQL...'
-& $PgCtl -D $PgData -l $PgLog start *> $null
+cmd /c "`"$PgCtl`" -D `"$PgData`" -l `"$PgLog`" start >nul 2>nul"
 
 for ($attempt = 0; $attempt -lt 10; $attempt++) {
   Start-Sleep -Milliseconds 500

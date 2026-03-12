@@ -1,4 +1,6 @@
 import request from 'supertest';
+import * as React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import { createApp } from '../../apps/api/src/app.ts';
 import { detectIntent } from '../../apps/api/src/lib/intent.ts';
@@ -85,6 +87,35 @@ async function createLookupBooking() {
 }
 
 describe('AI GYM next-step API tests', () => {
+  it('renders the homepage shell with the configured API health URL', async () => {
+    const originalApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+    vi.resetModules();
+    process.env.NEXT_PUBLIC_API_BASE_URL =
+      'https://aigymupdated-pilot.up.railway.app';
+    vi.stubGlobal('React', React);
+
+    try {
+      const { default: HomePage } = await import('../../apps/web/app/page.tsx');
+      const html = renderToStaticMarkup(HomePage());
+
+      expect(html).toContain('3-minute gym booking demo');
+      expect(html).toContain('API health');
+      expect(html).toContain(
+        'https://aigymupdated-pilot.up.railway.app/health',
+      );
+      expect(html).not.toContain('localhost:3001/health');
+    } finally {
+      vi.resetModules();
+
+      if (originalApiBaseUrl === undefined) {
+        delete process.env.NEXT_PUBLIC_API_BASE_URL;
+      } else {
+        process.env.NEXT_PUBLIC_API_BASE_URL = originalApiBaseUrl;
+      }
+    }
+  });
+
   it('returns health payload', async () => {
     const response = await request(app).get('/health');
 
@@ -128,6 +159,31 @@ describe('AI GYM next-step API tests', () => {
         username: 'admin',
       },
     });
+  });
+
+  it('loads the admin dashboard after login', async () => {
+    const token = await getAdminToken();
+
+    const dashboardResponse = await request(app)
+      .get('/api/admin/dashboard')
+      .query({ businessSlug: 'ai-gym-demo' })
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(dashboardResponse.status).toBe(200);
+    expect(dashboardResponse.body.success).toBe(true);
+    expect(dashboardResponse.body.data).toEqual(
+      expect.objectContaining({
+        business: expect.objectContaining({
+          slug: 'ai-gym-demo',
+        }),
+        counts: expect.objectContaining({
+          bookings: expect.any(Number),
+          faqItems: expect.any(Number),
+          conversations: expect.any(Number),
+          handoffRequests: expect.any(Number),
+        }),
+      }),
+    );
   });
 
   it('rejects invalid admin login', async () => {

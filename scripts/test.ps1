@@ -4,6 +4,21 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RootDir = Split-Path -Parent $ScriptDir
 Set-Location $RootDir
 
-PowerShell -ExecutionPolicy Bypass -File '.\scripts\ensure-postgres.ps1'
-node '.\scripts\sync-env.mjs'
-pnpm test
+function Invoke-Step {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Message,
+    [Parameter(Mandatory = $true)]
+    [scriptblock]$Action
+  )
+
+  Write-Host $Message
+  & $Action
+
+  if ($LASTEXITCODE -ne 0) {
+    throw "Step failed: $Message"
+  }
+}
+
+Invoke-Step "Resetting demo data..." { pnpm demo:reset }
+Invoke-Step "Running internal smoke tests..." { pnpm test }
