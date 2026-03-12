@@ -1,7 +1,7 @@
 import type { ApiResponse } from './shared';
+import { PUBLIC_API_BASE_URL } from './public-env';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
+const API_BASE_URL = PUBLIC_API_BASE_URL;
 
 export async function apiFetch<T>(
   path: string,
