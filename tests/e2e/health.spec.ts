@@ -3,14 +3,15 @@ import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 import { createApp } from '../../apps/api/src/app.ts';
+import { config } from '../../apps/api/src/config.ts';
 import { detectIntent } from '../../apps/api/src/lib/intent.ts';
 
 const app = createApp();
 
 async function getAdminToken() {
   const response = await request(app).post('/api/admin/login').send({
-    username: 'admin',
-    password: 'change-me',
+    username: config.adminUsername,
+    password: config.adminPassword,
   });
 
   expect(response.status).toBe(200);
@@ -156,7 +157,7 @@ describe('AI GYM next-step API tests', () => {
     expect(meResponse.body).toEqual({
       success: true,
       data: {
-        username: 'admin',
+        username: config.adminUsername,
       },
     });
   });
@@ -188,8 +189,8 @@ describe('AI GYM next-step API tests', () => {
 
   it('rejects invalid admin login', async () => {
     const response = await request(app).post('/api/admin/login').send({
-      username: 'admin',
-      password: 'wrong-password',
+      username: config.adminUsername,
+      password: `${config.adminPassword}-definitely-wrong`,
     });
 
     expect(response.status).toBe(401);

@@ -11,3 +11,4 @@ apps/web/.env.local
 packages/db/.env
 *.log
 .DS_Store
+*.tsbuildinfo

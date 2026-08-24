@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   DEFAULT_BUSINESS_SLUG,
@@ -20,8 +20,13 @@ export function AdminDashboard({ token, onUnauthorized }: AdminDashboardProps) {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const onUnauthorizedRef = useRef(onUnauthorized);
 
-  async function loadDashboard() {
+  useEffect(() => {
+    onUnauthorizedRef.current = onUnauthorized;
+  }, [onUnauthorized]);
+
+  const loadDashboard = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -36,7 +41,7 @@ export function AdminDashboard({ token, onUnauthorized }: AdminDashboardProps) {
         setDashboard(response.data);
       } else {
         if (response.error === 'Unauthorized.') {
-          onUnauthorized?.();
+          onUnauthorizedRef.current?.();
         }
         setError(response.error);
       }
@@ -47,11 +52,11 @@ export function AdminDashboard({ token, onUnauthorized }: AdminDashboardProps) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [token]);
 
   useEffect(() => {
     void loadDashboard();
-  }, [token]);
+  }, [loadDashboard]);
 
   return (
     <section className="stack">

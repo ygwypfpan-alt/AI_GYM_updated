@@ -66,6 +66,7 @@ const initialMessage: UiMessage = {
 
 export function ChatWidget() {
   const [services, setServices] = useState<ServiceSummary[]>([]);
+  const [servicesError, setServicesError] = useState<string | null>(null);
   const [messages, setMessages] = useState<UiMessage[]>([initialMessage]);
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [input, setInput] = useState('');
@@ -88,9 +89,15 @@ export function ChatWidget() {
 
         if (isApiSuccess(response)) {
           setServices(response.data.services);
+          setServicesError(null);
+          return;
         }
+
+        setServicesError(response.error);
       } catch (error) {
-        console.error('Failed to load services:', error);
+        setServicesError(
+          error instanceof Error ? error.message : '載入課程列表失敗。',
+        );
       }
     }
 
@@ -641,6 +648,10 @@ export function ChatWidget() {
           </p>
         )}
       </div>
+
+      {servicesError ? (
+        <p className="muted-text">課程列表載入失敗：{servicesError}</p>
+      ) : null}
 
       <div className="chip-row">
         {services.map((service) => (

@@ -3,6 +3,7 @@ import express from 'express';
 
 import { config } from './config.js';
 import { fail, AppError } from './lib/http.js';
+import { logUnhandledError } from './lib/logger.js';
 import { adminRouter } from './routes/admin.js';
 import { availabilityRouter } from './routes/availability.js';
 import { bookingsRouter } from './routes/bookings.js';
@@ -58,7 +59,7 @@ export function createApp(): express.Express {
       return fail(res, error.message, error.statusCode);
     }
 
-    console.error('Unhandled API error:', error);
+    logUnhandledError(error);
     return fail(res, '伺服器發生未預期錯誤。', 500);
   });
 
